@@ -1,5 +1,5 @@
 # logrus_context_hook
-A Logrus Hook to pull fields from Context (when passed) and convert into fields.
+A Logrus Hook to pull keys from Context (when passed) and convert into log fields.
 
 # Use
 
@@ -14,21 +14,21 @@ import (
 )
 
 func main() {
-  // Add the Context Hook
+
+	// Add the Context Hook
 	log.AddHook(logrus_context_hook.NewContextHook("*", // * is special for ANY field of type context.Context.
-    []string{"ServerId", "RequestId", "HostId"} //Second parameter is the list of keys in that context to look for.
-  ))
-  
-  // Then log with as you do
-  log.Infof("Hello from Logger...");
+		[]string{"ServerId", "RequestId", "HostId"})) //Second parameter is the list of keys in that context to look for.
 
-  // OR Log with Context field name
-  ctx := log.WithValue(context.Background(), "ServerId", "DemoServer")
-  log.WithField("Context", ctx).Infof("Hello from Logger with context under field 'Context'")
+	// Then log with as you do
+	log.Infof("Test1: Hello from Logger...")
 
-  // OR Log with Context under any field name (because of the "*")
-  ctx = log.WithValue(context.Background(), "RequestId", "Want this logged anyway")
-  log.WithField("NotContextField", ctx).Infof("Hello from Logger with context under field 'NotContextField'")
+	// OR Log with Context field name
+	ctx := context.WithValue(context.Background(), "ServerId", "DemoServer")
+	log.WithField("Context", ctx).Infof("Test1: Hello from Logger with context under field 'Context'")
+
+	// OR Log with Context under any field name (because of the "*")
+	ctx = context.WithValue(context.Background(), "RequestId", "Want this logged anyway")
+	log.WithField("NotContextField", ctx).Infof("Test1: Hello from Logger with context under field 'NotContextField'")
 }
 ```
 
@@ -42,22 +42,21 @@ import (
 )
 
 func main() {
-  // Add the Context Hook
-  log.AddHook(logrus_context_hook.NewContextHook("Context", // First parameter is the field name to look for context at
-    []string{"ServerId", "RequestId", "HostId"} //Second parameter is the list of keys in that context to look for.
-  ))
-  
-  // Then log with as you do
-  log.Infof("Hello from Logger...");
 
-  // OR Log with Context field Name
-  ctx := log.WithValue(context.Background(), "ServerId", "DemoServer")
-  log.WithField("Context", ctx).Infof("Hello from Logger with context under field 'Context'")
-  
-  // EXCEPT Log without Context field name, and hook does nothing
-  ctx = log.WithValue(context.Background(), "RequestId", "Don't Want this logged")
-  log.WithField("NotContextField", ctx).Infof("Hello from Logger with context under field 'NotContextField'")
+	// Add the Context Hook
+	log.AddHook(logrus_context_hook.NewContextHook("Context", // First parameter is the field name to look for context at
+		[]string{"ServerId", "RequestId", "HostId"})) //Second parameter is the list of keys in that context to look for.
 
+	// Then log with as you do
+	log.Infof("Test2: Hello from Logger...");
+
+	// OR Log with Context field Name
+	ctx := context.WithValue(context.Background(), "ServerId", "DemoServer")
+	log.WithField("Context", ctx).Infof("Test2: Hello from Logger with context under field 'Context'")
+
+	// EXCEPT Log without Context field name, and hook does nothing
+	ctx = context.WithValue(context.Background(), "RequestId", "Don't Want this logged")
+	log.WithField("NotContextField", ctx).Infof("Test2: Hello from Logger with context under field 'NotContextField'")
 }
 ```
 
@@ -73,42 +72,43 @@ import (
 
 func main() {
 
-  // Hold reference to the hook
-  ctxHook := logrus_context_hook.NewContextHook("Context", // First parameter is the field to look for context at
-    []string{"ServerId", "RequestId", "HostId"} //Second parameter is the list of keys in that context to look for.
-  )
 
-  // Add the Context Hook
+	// Hold reference to the hook
+	ctxHook := logrus_context_hook.NewContextHook("Context", // First parameter is the field to look for context at
+		[]string{"ServerId", "RequestId", "HostId"}) //Second parameter is the list of keys in that context to look for.
+
+	// Add the Context Hook
 	log.AddHook(ctxHook)
-  
-  // Then log with as you do
-  log.Infof("Hello from Logger...");
 
-  // OR Log with Context field
-  ctx := log.WithValue(context.Background(), "ServerId", "DemoServer")
-  log.WithField("Context", ctx).Infof("Hello from Logger with context under field 'Context'")
-  
-  // EXCEPT Log without Context field, and hook does nothing
-  ctx = log.WithValue(context.Background(), "RequestId", "Don't Want this logged")
-  log.WithField("NotContextField", ctx).Infof("Hello from Logger with context under field 'NotContextField'")
-  
-  // BUT we can change that at runtime
-  ctxHook.SetContextField("*")
+	// Then log with as you do
+	log.Infof("Test3: Hello from Logger...");
 
-  // AND it works now...
-  ctx = log.WithValue(context.Background(), "RequestId", "Changed our mind at runtime. We want this logged.")
-  log.WithField("NotContextField", ctx).Infof("Hello from Logger with context under field 'NotContextField'")
-  
-  // EXCEPT we just need a new key called UserId
-  ctx = log.WithValue(context.Background(), "UserId", "This key wasn't being looked for")
-  log.WithField("NotContextField", ctx).Infof("Hello from Logger with context having new key 'UserId'")
+	// OR Log with Context field
+	ctx := context.WithValue(context.Background(), "ServerId", "DemoServer")
+	log.WithField("Context", ctx).Infof("Test3: Hello from Logger with context under field 'Context'")
 
-  // BUT we can change that at runtime TOO
-  ctxHook.SetContextKeys(append(ctxHook.GetContextKeys(), "UserId"))
+	// EXCEPT Log without Context field, and hook does nothing
+	ctx = context.WithValue(context.Background(), "RequestId", "Don't Want this logged")
+	log.WithField("NotContextField", ctx).Infof("Test3: Hello from Logger with context under field 'NotContextField'")
 
-  // AMD it works now
-  ctx = log.WithValue(context.Background(), "UserId", "This key is being looked for. Changed our mind at runtime again.")
-  log.WithField("NotContextField", ctx).Infof("Hello from Logger with context having new key 'UserId'")
+	// BUT we can change that at runtime
+	ctxHook.SetContextField("*")
 
+	// AND it works now...
+	ctx = context.WithValue(context.Background(), "RequestId", "Changed our mind at runtime. We want this logged.")
+	log.WithField("NotContextField", ctx).Infof("Test3: Hello from Logger with context under field 'NotContextField'")
+
+	// EXCEPT we just need a new key called UserId
+	ctx = context.WithValue(context.Background(), "UserId", "This key wasn't being looked for")
+	log.WithField("NotContextField", ctx).Infof("Test3: Hello from Logger with context having new key 'UserId'")
+
+	// BUT we can change that at runtime TOO
+	ctxHook.SetContextKeys(append(ctxHook.GetContextKeys(), "UserId"))
+
+	// AMD it works now
+	ctx = context.WithValue(context.Background(), "UserId", "This key is being looked for. Changed our mind at runtime again.")
+	log.WithField("NotContextField", ctx).Infof("Test3: Hello from Logger with context having new key 'UserId'")
 }
 ```
+
+
